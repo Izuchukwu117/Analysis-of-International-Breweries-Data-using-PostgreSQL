@@ -57,10 +57,34 @@ territories in order for the territory manager,
 Mr. Stone made a strategic decision that will aid
 profit maximization in 2020.*/
 
-SELECT territory,
-	SUM(profit) AS total_profit
-FROM int_breweries
-GROUP BY territory;
+SELECT a.years,
+	SUM(a.anglo_profit) AS Anglo_profit,
+	SUM(f.franco_profit) AS Franco_profit,
+	f.franco_profit - a.anglo_profit AS diff
+FROM
+	(SELECT t.years,
+		SUM (t.total_profit) AS anglo_profit
+	FROM
+		(SELECT years, territory,
+			SUM(profit) AS total_profit
+		FROM int_breweries
+		GROUP BY years, territory
+		ORDER BY years, total_profit) AS t
+	WHERE territory='Anglophone'
+	GROUP BY t.years) AS a
+INNER JOIN
+	(SELECT t.years,
+		SUM (t.total_profit) AS franco_profit
+	FROM
+		(SELECT years, territory,
+			SUM(profit) AS total_profit
+		FROM int_breweries
+		GROUP BY years, territory
+		ORDER BY years, total_profit) AS t
+	WHERE territory='Francophone'
+	GROUP BY t.years) AS f
+USING(years)
+GROUP BY a.years, diff;
 
 /*3. Country that generated the highest profit in
 2019*/
